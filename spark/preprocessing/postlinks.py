@@ -1,11 +1,14 @@
+# Import Statements
 import argparse
 import sys
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DateType, BooleanType
 
+# Main function
 def main(input_file, output_file): 
 
+    # Schema Definition
     postlinks_schema = StructType([
         StructField('_Id', IntegerType()),
         StructField('_CreationDate', StringType()),
@@ -15,7 +18,8 @@ def main(input_file, output_file):
     ])
 
     # Read the Badges Data from XML
-    pl_df = spark.read.format("com.databricks.spark.xml").option("rootTag", "postlinks").option("rowTag","row").load(input_file, schema=postlinks_schema)
+    pl_df = spark.read.format("com.databricks.spark.xml").option("rootTag", "postlinks")\
+        .option("rowTag","row").load(input_file, schema=postlinks_schema)
 
     # Rename Columns
     post_links = pl_df.withColumnRenamed('_Id','post_links_id')\
@@ -41,7 +45,6 @@ if __name__ == '__main__':
     output_path = args.output_path
 
     spark = SparkSession.builder.appName('Postlinks Preprocessor').getOrCreate()
-    assert spark.version >= '3.0'  # make sure we have Spark 3.0+
     spark.sparkContext.setLogLevel('WARN')
     sc = spark.sparkContext
 

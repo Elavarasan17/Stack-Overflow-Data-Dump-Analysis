@@ -1,11 +1,14 @@
+# Import statements
 import argparse
 import sys
 assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 from pyspark.sql import SparkSession
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, BooleanType
 
+# main method
 def main(input_file, output_file): 
 
+    # Schema Definition
     badges_schema = StructType([
         StructField('_Id', IntegerType()),
         StructField('_UserId', IntegerType()),
@@ -16,7 +19,8 @@ def main(input_file, output_file):
     ])
 
     # Read the Badges Data from XML
-    badges_df = spark.read.format("com.databricks.spark.xml").option("rootTag", "badges").option("rowTag","row").load(input_file, schema=badges_schema)
+    badges_df = spark.read.format("com.databricks.spark.xml").option("rootTag", "badges")\
+                    .option("rowTag","row").load(input_file, schema=badges_schema)
 
     # Rename Columns
     badges_df = badges_df.withColumnRenamed('_Id','badge_id')\
@@ -42,7 +46,6 @@ if __name__ == '__main__':
     output_path = args.output_path
 
     spark = SparkSession.builder.appName('Badges Preprocessor').getOrCreate()
-    assert spark.version >= '3.0'  # make sure we have Spark 3.0+
     spark.sparkContext.setLogLevel('WARN')
     sc = spark.sparkContext
 

@@ -3,7 +3,7 @@ from pyspark.sql import SparkSession, types
 from pyspark.sql.functions import *
 import argparse
 
-#Get Schema Definition
+# Get Schema Definition
 def getCommentsSchema():
     comments_schema = types.StructType([
         types.StructField('_Id', types.IntegerType()), #Comment Id
@@ -17,7 +17,7 @@ def getCommentsSchema():
     ])
     return comments_schema
 
-# main logic starts here
+# Preprocessing Comments
 def preprocess_comments(inputs, output):
 
     # Read raw data from the input path
@@ -27,17 +27,21 @@ def preprocess_comments(inputs, output):
     #Dropping unnecessary columns
     rawcomments_df = rawcomments_df.drop('_Text', '_UserDisplayName', '_ContentLincense')
 
-    #cleaning data
-    rawcomments_df = rawcomments_df.withColumnRenamed('_Id','comment_id').withColumnRenamed('_PostId','post_id').withColumnRenamed('_Score','score')\
-        .withColumnRenamed('_CreationDate','creation_date').withColumnRenamed('_UserId','user_id')
+    #Cleaning data
+    rawcomments_df = rawcomments_df.withColumnRenamed('_Id','comment_id').withColumnRenamed('_PostId','post_id')\
+        .withColumnRenamed('_Score','score').withColumnRenamed('_CreationDate','creation_date')\
+            .withColumnRenamed('_UserId','user_id')
     filtered_comments = rawcomments_df.filter(rawcomments_df.user_id.isNotNull()).cache()
 
     #Transforming Data
-    high_score_comments = filtered_comments.orderBy(filtered_comments.score.desc()).select(['comment_id','post_id','score','creation_date','user_id'])
-    most_comments_by_user = filtered_comments.groupBy(filtered_comments.user_id).agg(count(filtered_comments.comment_id).alias('num_of_comments'))\
-        .orderBy(col('num_of_comments').desc()).select(['user_id', 'num_of_comments'])
-    post_withmost_comments = filtered_comments.groupBy(filtered_comments.post_id).agg(count(filtered_comments.user_id).alias('count_of_users'))\
-        .orderBy(col('count_of_users').desc()).select(['post_id', 'count_of_users'])
+    high_score_comments = filtered_comments.orderBy(filtered_comments.score.desc())\
+        .select(['comment_id','post_id','score','creation_date','user_id'])
+
+    most_comments_by_user = filtered_comments.groupBy(filtered_comments.user_id).agg(count(filtered_comments.comment_id)\
+        .alias('num_of_comments')).orderBy(col('num_of_comments').desc()).select(['user_id', 'num_of_comments'])
+
+    post_withmost_comments = filtered_comments.groupBy(filtered_comments.post_id).agg(count(filtered_comments.user_id)\
+        .alias('count_of_users')).orderBy(col('count_of_users').desc()).select(['post_id', 'count_of_users'])
 
     # Writing the output
     high_score_comments.write.mode('overwrite').parquet(output+ "highscorecomments")

@@ -1,11 +1,13 @@
+# Import Statements
 from pyspark.sql import SparkSession, functions, types
 from pyspark.sql.functions import *
 import sys
 import argparse
-assert sys.version_info >= (3, 5) # make sure we have Python 3.5+
 
+# Main method
 def main(inputs, output):
-    # main logic starts here
+
+    # Schema Definition
     users_schema = types.StructType([types.StructField('_Id', types.IntegerType()),
         types.StructField('_Reputation', types.IntegerType()),
         types.StructField('_CreationDate', types.StringType()),
@@ -21,8 +23,14 @@ def main(inputs, output):
         types.StructField('_EmailHash', types.StringType()),
         types.StructField('_AccountId', types.IntegerType())])
 
-    df = spark.read.format("com.databricks.spark.xml").option("rootTag", "users").option("rowTag", "row").schema(users_schema).load(inputs).drop("_AboutMe","_WebsiteUrl","_ProfileImageUrl","_EmailHash","_AccountId")
-    df = df.withColumnRenamed('_Id','id').withColumnRenamed('_Reputation','reputation').withColumnRenamed('_CreationDate','creation_date').withColumnRenamed('_DisplayName','display_name').withColumnRenamed('_LastAccessDate','last_access_date').withColumnRenamed('_Views','views').withColumnRenamed('_Upvotes','upvotes').withColumnRenamed('_Downvotes','downvotes').withColumnRenamed('_Location','location')
+    df = spark.read.format("com.databricks.spark.xml").option("rootTag", "users").option("rowTag", "row")\
+        .schema(users_schema).load(inputs).drop("_AboutMe","_WebsiteUrl","_ProfileImageUrl","_EmailHash","_AccountId")
+
+    df = df.withColumnRenamed('_Id','id').withColumnRenamed('_Reputation','reputation')\
+        .withColumnRenamed('_CreationDate','creation_date').withColumnRenamed('_DisplayName','display_name')\
+            .withColumnRenamed('_LastAccessDate','last_access_date').withColumnRenamed('_Views','views')\
+                .withColumnRenamed('_Upvotes','upvotes').withColumnRenamed('_Downvotes','downvotes')\
+                    .withColumnRenamed('_Location','location')
     
     df1 = df.withColumn('creation_year',functions.split(df['creation_date'],"T").getItem(0))
     df1 = df1.drop('creation_date')
@@ -36,6 +44,7 @@ def main(inputs, output):
     users.write.mode('overwrite').parquet(output)
 
 if __name__ == '__main__':
+    # Parsing Arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-users_src", action="store", dest="users_src", type=str)
     parser.add_argument("-users_output", action="store", dest="users_output", type=str)
@@ -48,4 +57,5 @@ if __name__ == '__main__':
     assert spark.version >= '3.0' # make sure we have Spark 3.0+
     spark.sparkContext.setLogLevel('WARN')
     sc = spark.sparkContext
+    
     main(inputs, output)
