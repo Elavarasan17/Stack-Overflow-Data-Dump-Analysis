@@ -1,6 +1,6 @@
 # Stackoverflow Analysis!
 
-Welcome to the Dataprocessors's StackOverflow Analysis project. The following document serves as a guide to execute the workflow.
+Welcome to the StackOverflow Dump Analysis project. The following document serves as a guide to execute the workflow.
 
 
 ## Steps for GCP Setup
@@ -56,6 +56,7 @@ A temporary bucket is usually always available in Google Storage once you a crea
 2.  Run these commands:
 
 ### Preprocessing:
+
 ```
 gcloud dataproc jobs submit pyspark spark/preprocessing/posts.py  --cluster=${CLUSTER} --properties=spark.jars.packages='com.databricks:spark-xml_2.12:0.14.0' --region=${REGION} -- -posts_src gs://data-processors-stackoverflow/inputs/Posts.xml -posts_dest gs://${BUCKET_NAME}/staging/posts/
 ```
@@ -76,6 +77,7 @@ gcloud dataproc jobs submit pyspark spark/preprocessing/votes.py --cluster=${CLU
 ```
 
 ### Exploration:
+
 ```
 gcloud dataproc jobs submit pyspark spark/user-answers.py  --cluster=${CLUSTER} --region=${REGION} --jars=gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar  -- -posts_src gs://${BUCKET_NAME}/staging/posts/ -users_src gs://${BUCKET_NAME}/staging/users/ -votes_src gs://${BUCKET_NAME}/staging/votes/postupdownvotes/ -tempbucket_src ${TEMP_BUCKET} -dataset_output ${DATASET}
 ```
@@ -102,6 +104,7 @@ select * from `eastern-memory-333522.stackoverflow.user_tag_expertise` x inner j
 
 
 ### ML Model building:
+
 ```
 gcloud dataproc jobs submit pyspark spark/ml-model-builder.py  --cluster=${CLUSTER} --region=${REGION} -- -posts_src gs://${BUCKET_NAME}/staging/posts/ -users_src gs://${BUCKET_NAME}/staging/users/ -answered_dest gs://${BUCKET_NAME}/outputs/ml-data/answer-data/ -users_dest gs://${BUCKET_NAME}/outputs/ml-data/users/ -answer_predictor_dest gs://${BUCKET_NAME}/outputs/models/answer-predictor/ -user_predictor_dest gs://${BUCKET_NAME}/outputs/models/user-predictor/
 ```
@@ -120,6 +123,7 @@ gsutil -m cp -r gs://${BUCKET_NAME}/outputs/models/ .
 ```
 
 #### Option 1
+
 Install the requirements required:
 ```
 pip install -r requirements.txt
@@ -131,6 +135,7 @@ streamlit run app.py
 ```
 
 #### Option 2
+
 We have also setup a dockerfile if you don't have Java and Python and just need a container to run the web app. This requires [docker](https://docs.docker.com/get-docker/) to be installed.
 ```
 docker build -t stackoverflow:1.0 .
@@ -138,7 +143,3 @@ docker build -t stackoverflow:1.0 .
 ```
 docker run stackoverflow:1.0
 ```
-
-### Visualization
-
-The visualizations are done using Google Data Studio. The dashboards can be found in this link.

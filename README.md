@@ -1,4 +1,5 @@
 ## Table of Contents
+ 
  - Installation
  - Problem Statement
  - File Structure
@@ -6,7 +7,8 @@
  - Licenses and Acknowledgement
 
 ## Installation
-Kindly follow the  [running.md](https://csil-git1.cs.surrey.sfu.ca/nra38/cmpt732-dataprocessors-stackoverflow-analysis/-/blob/master/RUNNING.MD) file in the directory which contains step-wise the installation procedures.
+
+Kindly follow the [running.md](https://csil-git1.cs.surrey.sfu.ca/nra38/cmpt732-dataprocessors-stackoverflow-analysis/-/blob/master/RUNNING.MD) file in the directory which contains step-wise the installation procedures.
 
 ##  Problem Statement
 
@@ -19,6 +21,7 @@ Questions:
 5. Topographical visuals of Tags and Badges.
 
 ## File Structure
+
 Please find the file structure below,
 ```
 ├── README.md
